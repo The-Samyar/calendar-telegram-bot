@@ -43,9 +43,40 @@ BOT_USERNAME: Final = '@Ghasem123456789bot'
 
 OPTIONS, SUB, DAY, STARTTIME, ENDTIME, TEACHER, CLASSNO = range(7)
 
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # ptext = "Salam, man behet komak mikonam tagvime darsito besazi"
+    # ptext.encode(encoding='utf-8')
+
+    # menutext = "Sakht"
+    # menutext.encode(encoding='utf-8')
+
+    keyboard = [
+        ["Dars jadid ezafe kon"],
+    ]
+
+    if context.user_data['subs']:
+        del context.user_data['subs']
+
+    await context.bot.send_message(
+        chat_id=update.message.chat_id,
+        text="Salam, man behet komak mikonam tagvime darsito besazi",
+        reply_markup=ReplyKeyboardMarkup(
+            keyboard,
+            one_time_keyboard=True
+            )
+        )
+    
+    return OPTIONS
+
 def main() -> None:
     app = Application.builder().token(TOKEN).build()
 
+    convo_handler = ConversationHandler(
+        entry_points=[CommandHandler('start', start)],
+
+    )
+
+    app.add_handler(convo_handler)
 
     print('Polling...')
 
