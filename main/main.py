@@ -68,12 +68,40 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     return OPTIONS
 
+async def options(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text
+    chat_id = update.message.chat_id
+    if text == "Dars jadid ezafe kon":
+        await context.bot.send_message(chat_id=chat_id, text="Esme dars:")
+        return SUB
+    
+    elif text == "Reset":
+        pass
+    
+    elif text == "Virayeshe dars":
+        pass
+    
+    elif text == "Pak kardane dars":
+        pass
+
+    elif text == "Sakhte taghvim":
+        pass
+
+    else:
+        pass
+
 def main() -> None:
     app = Application.builder().token(TOKEN).build()
 
     convo_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
-
+        states={
+            OPTIONS : [
+                MessageHandler(
+                    filters.Regex("^(Dars jadid ezafe kon|Reset|Virayeshe dars|Pak kardane dars|Sakhte taghvim)$"), options
+                )
+            ],
+        },
     )
 
     app.add_handler(convo_handler)
