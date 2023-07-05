@@ -71,16 +71,30 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def options(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
     chat_id = update.message.chat_id
+    user_data = context.user_data['subs']
     if text == "Dars jadid ezafe kon":
         await context.bot.send_message(chat_id=chat_id, text="Esme dars:")
         return SUB
     
     elif text == "Reset":
-        pass
-    
+        if user_data:
+            del user_data
+            keyboard = [
+                ["Dars jadid ezafe kon"],
+            ]
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text="Baraye ezafe kardane darse jadid bezan roo dokme",
+                reply_markup=ReplyKeyboardMarkup(
+                    keyboard=keyboard,
+                    one_time_keyboard=True
+                    )
+                )
+            return OPTIONS
+
     elif text == "Virayeshe dars":
         pass
-    
+
     elif text == "Pak kardane dars":
         pass
 
@@ -91,7 +105,7 @@ async def options(update: Update, context: ContextTypes.DEFAULT_TYPE):
         pass
 
 async def sub(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text
+    text = str(update.message.text)
     if 'subs' in context.user_data:
         sub_id = context.user_data['subs'][-1]['id']
         context.user_data['subs'].append({'id' : sub_id+1, 'sub_title' : text})
@@ -172,7 +186,7 @@ async def endtime(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return ENDTIME
 
 async def teacher(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text
+    text = str(update.message.text)
     chat_id = update.message.chat_id
     context.user_data['subs'][-1]['teacher'] = text
     await context.bot.send_message(
@@ -182,18 +196,11 @@ async def teacher(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return CLASSNO
 
 async def classno(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text
+    text = str(update.message.text)
     chat_id = update.message.chat_id
     context.user_data['subs'][-1]['classno'] = text
     keyboard = []
     data = context.user_data['subs']
-    # for row in data:
-    #     keyboard.append(
-    #             [InlineKeyboardButton(
-    #                 text=f"{row['id']}. Kelase {row['sub']}, {row['day']} ha az saate{row['starttime']} ta {row['endtime']}, ostad {row['teacher']}, kelase {row['classno']}",
-    #                 callback_data=f"{row['id']}"
-    #             )]
-    #         )
     keyboard = [
         ["Reset"],
         ["Virayeshe dars"],
@@ -267,6 +274,3 @@ def main() -> None:
 
 if __name__ == '__main__':
     main()
-
-    
-
