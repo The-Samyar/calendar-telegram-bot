@@ -41,7 +41,7 @@ print('Starting up bot...')
 TOKEN: Final = '6255015100:AAGzUSK9WaUVeBFl4E-y-gUq6c18cqToUi4'
 BOT_USERNAME: Final = '@Ghasem123456789bot'
 
-OPTIONS, SUB, DAY, STARTTIME, ENDTIME, TEACHER, CLASSNO = range(7)
+OPTIONS, SUB, DAY, STARTTIME, ENDTIME, TEACHER, CLASSNO, DELETESUB = range(8)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # ptext = "Salam, man behet komak mikonam tagvime darsito besazi"
@@ -93,16 +93,65 @@ async def options(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return OPTIONS
 
     elif text == "Virayeshe dars":
+        # for row in user_data:
+        #     keyboard.append(
+        #             [InlineKeyboardButton(
+        #                 text=f"{row['id']}. Kelase {row['sub']}, {row['day']} ha az saate{row['start_time']} ta {row['end_time']}, ostad {row['teacher']}, kelase {row['classno']}",
+        #                 callback_data=f"{row['id']}"
+        #             )]
+        #         )
+
+        # await context.bot.send_message(
+        #     chat_id=chat_id,
+        #     reply_markup=InlineKeyboardMarkup(
+        #         keyboard=keyboard
+        #     )
+        # )
+        # return SUB
         pass
 
     elif text == "Pak kardane dars":
-        pass
+        keyboard = []
+        user_data = context.user_data['subs'].items()
+        for row in user_data:
+            keyboard.append([
+                InlineKeyboardButton(
+                text= f"{row['id']}. Kelase {row['sub']}, {row['day']} ha az saate{row['start_time']} ta {row['end_time']}, ostad {row['teacher']}, kelase {row['classno']}\n",
+                callback_data=row['id'])
+                ])
+
+        context.bot.send_message(
+            chat_id=chat_id,
+            text="Koodoom dars ro mikhay pak koni?",
+            reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+        
+        return DELETESUB
 
     elif text == "Sakhte taghvim":
         pass
 
     else:
-        pass
+        keyboard = [
+            ["Dars jadid ezafe kon"],
+        ]
+        
+        if len(user_data) > 0:
+            keyboard.append(
+                ["Reset"],
+                ["Virayeshe dars"],
+                ["Pak kardane dars"],
+                ["Sakhte taghvim"]
+            )
+
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text="Command e eshtebah. Dobare entekhab kon:",
+            reply_markup=ReplyKeyboardMarkup(keyboard=keyboard)
+            )
+        
+        return OPTIONS
+
 
 async def sub(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = str(update.message.text)
@@ -141,17 +190,29 @@ async def starttime(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         if 0 <= int(text[0]) < 24:
             if 0 <= int(text[0]) < 60:
-                context.user_data['subs'][-1]['starttime'] = time(hour=text[0],minute=text[1])
-                await context.bot.send_message(chat_id=chat_id, text="Saate payane kelas: (Masalan 17:35)")
+                context.user_data['subs'][-1]['start_time'] = time(hour=text[0],minute=text[1])
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    text="Saate payane kelas: (Masalan 17:35)"
+                    )
                 return ENDTIME
             else:
-                await context.bot.send_message(chat_id=chat_id, text="Daghighe shorooe kelas eshtebahe, dobare saate shooroo ro vared kon: (Masalan 14:40)")
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    text="Daghighe shorooe kelas eshtebahe, dobare saate shooroo ro vared kon: (Masalan 14:40)"
+                    )
                 return STARTTIME
         else:
-            await context.bot.send_message(chat_id=chat_id, text="Saate shorooe kelas eshtebahe, dobare vared kon: (Masalan 14:40)")
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text="Saate shorooe kelas eshtebahe, dobare vared kon: (Masalan 14:40)"
+                )
             return STARTTIME
     except ValueError:
-        await context.bot.send_message(chat_id=chat_id, text="Eshtebah vared kardi dobare vared kon: (Masalan 14:40)")
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text="Eshtebah vared kardi dobare vared kon: (Masalan 14:40)"
+            )
         return STARTTIME
 
 async def endtime(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -160,7 +221,7 @@ async def endtime(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         if 0 <= int(text[0]) < 24:
             if 0 <= int(text[0]) < 60:
-                context.user_data['subs'][-1]['endtime'] = time(hour=text[0],minute=text[1])
+                context.user_data['subs'][-1]['end_time'] = time(hour=text[0],minute=text[1])
                 await context.bot.send_message(
                     chat_id=chat_id,
                     text="Saate payane kelas: (Masalan 17:35)"
@@ -214,10 +275,70 @@ async def classno(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return OPTIONS
 
+# async def editsub(update: Update, context: ContextTypes.DEFAULT_TYPE):
+#     text = str(update.message.text)
+#     chat_id = update.message.chat_id
+#     query = update.callback_query
+#     user_data = context.user_data
+#     user_data['edit'] = {'id' : str(query.data)}
+#     keyboard = []
+#     sub_data  = user_data['subs'][user_data['edit']['id']].items()
+#     for i in range(1, len(sub_data)):
+#         keyboard.append([
+#             InlineKeyboardButton(
+#             text=f"{sub_data[i][0]}:{sub_data[i][1]}",
+#             callback_data=i)
+#             ])
+#     await context.bot.send_message(
+#         chat_id=chat_id,
+#         text="Kodoom ghesmat ro mikhay virayesh koni:",
+#         reply_markup=InlineKeyboardMarkup(keyboard)
+#         )
+#     return EDITSUBCOL
+
+# async def editsubcol(update: Update, context: ContextTypes.DEFAULT_TYPE):
+#     query = update.callback_query
+#     return query.data
+
+async def deletesub(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.chat
+    query = update.callback_query
+    i = subtract = 0
+    subs = context.user_data['subs']
+    await query.answer()
+    while i < len(subs):
+        subs[i]['id'] = str(int(subs[i]['id']) - subtract)
+
+        if (subs[i]['id'] == str(query.data)) and (subtract == 0):
+            del subs[i]
+            subtract = 1
+            continue
+
+        i += 1
+    
+    keyboard = [
+        ["Dars jadid ezafe kon"],
+    ]
+    
+    if len(subs) > 0:
+        keyboard.append(
+            ["Reset"],
+            ["Virayeshe dars"],
+            ["Pak kardane dars"],
+            ["Sakhte taghvim"]
+        )
+    
+    await query.edit_message_text(
+        text="Dars paak shod.\nGozine morede nazar ro entekhab kon",
+        reply_markup=ReplyKeyboardMarkup(keyboard=keyboard)
+        )
+    
+    return OPTIONS
+
 def view(data):
     text = ''
     for row in data:
-       text += f"{row['id']}. Kelase {row['sub']}, {row['day']} ha az saate{row['starttime']} ta {row['endtime']}, ostad {row['teacher']}, kelase {row['classno']}\n",
+       text += f"{row['id']}. Kelase {row['sub']}, {row['day']} ha az saate{row['start_time']} ta {row['end_time']}, ostad {row['teacher']}, kelase {row['classno']}\n",
 
 
 def main() -> None:
@@ -258,6 +379,16 @@ def main() -> None:
                 MessageHandler(
                     (filters.TEXT & ~filters.COMMAND), classno
                 )
+            ],
+
+            # EDITSUB : [
+            #     CallbackQueryHandler(editsub, pattern="^[0-9]*$")
+            # ],
+            # EDITSUBCOL : [
+            #     CallbackQueryHandler(editsubcol, pattern="^[1-6]$")
+            # ],
+            DELETESUB : [
+                CallbackQueryHandler(deletesub, pattern="^[0-9]*$")
             ],
         },
         fallbacks=[CommandHandler('sub', sub)]
