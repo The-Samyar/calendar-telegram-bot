@@ -54,7 +54,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ["Dars jadid ezafe kon"],
     ]
 
-    if context.user_data['subs']:
+    if 'subs' in context.user_data:
         del context.user_data['subs']
 
     await context.bot.send_message(
@@ -71,7 +71,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def options(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
     chat_id = update.message.chat_id
-    user_data = context.user_data['subs']
+    if 'subs' in context.user_data:
+        user_data = context.user_data['subs']
     if text == "Dars jadid ezafe kon":
         await context.bot.send_message(chat_id=chat_id, text="Esme dars:")
         return SUB
@@ -156,7 +157,7 @@ async def sub(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_data = context.user_data
     text = str(update.message.text)
     chat_id = update.message.chat_id
-    if user_data['edit']:
+    if 'edit' in user_data:
         for row in user_data['subs']:
             if row['id'] == user_data['edit']['id']:
                 keyboard = []
@@ -196,12 +197,12 @@ async def sub(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return DAY
 
 async def day(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text
-    chat_id = update.message.chat_id
     query = update.callback_query
     user_data = context.user_data
-    await query.answer()
-    if user_data['edit']:
+    await query.answer(
+        text="Button clicked"
+    )
+    if 'edit' in user_data:
         for row in user_data['subs']:
             if row['id'] == user_data['edit']['id']:
                 keyboard = []
@@ -213,8 +214,7 @@ async def day(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         text=f"{sub_data[i][0]}:{sub_data[i][1]}",
                         callback_data=i)
                         ])
-                await context.bot.send_message(
-                    chat_id=chat_id,
+                await query.edit_message_text(
                     text="Kodoom ghesmat ro mikhay virayesh koni:",
                     reply_markup=InlineKeyboardMarkup(keyboard)
                     )
@@ -231,7 +231,7 @@ async def starttime(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         if 0 <= int(text[0]) < 24:
             if 0 <= int(text[0]) < 60:
-                if user_data['edit']:
+                if 'edit' in user_data:
                     for row in user_data['subs']:
                         if row['id'] == user_data['edit']['id']:
                             keyboard = []
@@ -250,7 +250,7 @@ async def starttime(update: Update, context: ContextTypes.DEFAULT_TYPE):
                                 )
                             return EDITSUBCOL
                 else:
-                    context.user_data['subs'][-1]['start_time'] = time(hour=text[0],minute=text[1])
+                    context.user_data['subs'][-1]['start_time'] = time(hour=int(text[0]),minute=int(text[1]))
                     await context.bot.send_message(
                         chat_id=chat_id,
                         text="Saate payane kelas: (Masalan 17:35)"
@@ -282,7 +282,7 @@ async def endtime(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         if 0 <= int(text[0]) < 24:
             if 0 <= int(text[0]) < 60:
-                if user_data['edit']:
+                if 'edit' in user_data:
                     for row in user_data['subs']:
                         if row['id'] == user_data['edit']['id']:
                             keyboard = []
@@ -301,10 +301,10 @@ async def endtime(update: Update, context: ContextTypes.DEFAULT_TYPE):
                                 )
                             return EDITSUBCOL
                 else:
-                    context.user_data['subs'][-1]['end_time'] = time(hour=text[0],minute=text[1])
+                    context.user_data['subs'][-1]['end_time'] = time(hour=int(text[0]),minute=int(text[1]))
                     await context.bot.send_message(
                         chat_id=chat_id,
-                        text="Saate payane kelas: (Masalan 17:35)"
+                        text="Esme ostad:"
                         )
                     return TEACHER
             else:
@@ -330,7 +330,7 @@ async def teacher(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = str(update.message.text)
     chat_id = update.message.chat_id
     user_data = context.user_data
-    if user_data['edit']:
+    if 'edit' in user_data:
         for row in user_data['subs']:
             if row['id'] == user_data['edit']['id']:
                 keyboard = []
@@ -360,7 +360,7 @@ async def classno(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = str(update.message.text)
     chat_id = update.message.chat_id
     user_data = context.user_data
-    if user_data['edit']:
+    if 'edit' in user_data:
         for row in user_data['subs']:
             if row['id'] == user_data['edit']['id']:
                 keyboard = []
@@ -537,7 +537,9 @@ async def deletesub(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def view(data):
     text = ''
     for row in data:
-       text += f"{row['id']}. Kelase {row['sub_title']}, {row['day']} ha az saate{row['start_time']} ta {row['end_time']}, ostad {row['teacher']}, kelase {row['classno']}\n",
+        text += "{id}. Kelase {sub_title}, {day} ha az saate {start_time} ta {end_time}, ostad {teacher}, kelase {classno}\n".format(id = row['id'], sub_title = row['sub_title'], day = row['day'], start_time = str(row['start_time'].strftime("%H:%M")), end_time = str(row['end_time'].strftime("%H:%M")), teacher = row['teacher'], classno = row['classno'])
+    return text
+
 
 
 def main() -> None:
@@ -589,7 +591,9 @@ def main() -> None:
                 CallbackQueryHandler(deletesub, pattern="^[0-9]*$")
             ],
         },
-        fallbacks=[CommandHandler('sub', sub)]
+        fallbacks=[CommandHandler('sub', sub)],
+        per_chat=True,
+        per_user=True
     )
 
     app.add_handler(convo_handler)
