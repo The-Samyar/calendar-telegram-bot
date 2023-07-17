@@ -501,28 +501,8 @@ async def editsub(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     user_data = context.user_data
     await query.answer(text="Button clicked")
-    if query.data == 'done':
-        if 'edit' in context.user_data:
-            del context.user_data['edit']
 
-        keyboard = [
-            ["Dars jadid ezafe kon"],
-            ["Reset"],
-            ["Virayeshe dars"],
-            ["Pak kardane dars"],
-            ["Sakhte taghvim"]
-        ]
-        await query.edit_message_reply_markup(reply_markup=None)
-
-        await query.message.reply_text(
-            text=f"Ina dars haeie ke ta alan vared kardi:\n{view(data=context.user_data['subs'])}",
-            reply_markup=ReplyKeyboardMarkup(
-            keyboard=keyboard,
-            one_time_keyboard=True
-            )
-        )
-        return OPTIONS
-    else:
+    try:
         if int(query.data) <= int(user_data['subs'][-1]['id']):
             user_data['edit'] = {'id' : str(query.data)}
             keyboard = list()
@@ -564,6 +544,50 @@ async def editsub(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 reply_markup=InlineKeyboardMarkup(keyboard)
             )
             return EDITSUB
+    except ValueError:
+        if query.data == 'done':
+            if 'edit' in context.user_data:
+                del context.user_data['edit']
+
+            keyboard = [
+                ["Dars jadid ezafe kon"],
+                ["Reset"],
+                ["Virayeshe dars"],
+                ["Pak kardane dars"],
+                ["Sakhte taghvim"]
+            ]
+            await query.edit_message_reply_markup(reply_markup=None)
+
+            await query.message.reply_text(
+                text=f"Ina dars haeie ke ta alan vared kardi:\n{view(data=context.user_data['subs'])}",
+                reply_markup=ReplyKeyboardMarkup(
+                keyboard=keyboard,
+                one_time_keyboard=True
+                )
+            )
+            return OPTIONS
+        else:
+            keyboard = list()
+            for row in user_data['subs']:
+                keyboard.append([
+                    InlineKeyboardButton(
+                        text=view([row]),
+                        callback_data=f"{row['id']}"
+                        )]
+                    )
+
+            keyboard.append(
+                [InlineKeyboardButton(
+                text=f"Done✔✅",
+                callback_data='done')]
+            )
+            await query.edit_message_text(
+                text="Dars yaft nashod dobare entekhab kon:",
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+            return EDITSUB
+
+
 
 
 async def editsubcol(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -769,7 +793,7 @@ async def deletesub(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
 
             await query.edit_message_text(
-                text="Dars yaft nashod. Koodoom dars ro mikhay pak koni?",
+                text="Dars yaft nashod.\nKoodoom dars ro mikhay pak koni?",
                 reply_markup=InlineKeyboardMarkup(keyboard)
                 )
             
