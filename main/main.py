@@ -74,9 +74,6 @@ async def options(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
     chat_id = update.message.chat_id
 
-    if 'subs' in context.user_data:
-        user_data = context.user_data['subs']
-
     if text == "Dars jadid ezafe kon":
         if 'subs' not in context.user_data:
             context.user_data['subs'] = list()
@@ -503,7 +500,6 @@ async def classno(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def editsub(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     user_data = context.user_data
-
     await query.answer(text="Button clicked")
     if query.data == 'done':
         if 'edit' in context.user_data:
@@ -516,6 +512,7 @@ async def editsub(update: Update, context: ContextTypes.DEFAULT_TYPE):
             ["Pak kardane dars"],
             ["Sakhte taghvim"]
         ]
+        await query.edit_message_reply_markup(reply_markup=None)
 
         await query.message.reply_text(
             text=f"Ina dars haeie ke ta alan vared kardi:\n{view(data=context.user_data['subs'])}",
@@ -742,6 +739,7 @@ async def deletesub(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 ["Pak kardane dars"],
                 ["Sakhte taghvim"]
             ]
+            await query.edit_message_reply_markup(reply_markup=None)
 
             await query.message.reply_text(
             text="Dars paak shod.\nGozine morede nazar ro entekhab kon",
